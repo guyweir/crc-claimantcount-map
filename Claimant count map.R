@@ -130,5 +130,19 @@ cc$`Claimant count (July 2017)` <- format(cc$`Claimant count (July 2017)`, big.m
 cc$`Claimant count (July 2020)` <- format(cc$`Claimant count (July 2020)`, big.mark = ",")
 cc$`Population 2018` <- format(cc$`Population 2018`, big.mark = ",")
 
+######################################
+############## MAP ###################
+#####################################
 
+library(rgdal)
+library(rgeos)
+suppressPackageStartupMessages(library(sp))
+suppressPackageStartupMessages(library(sf))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(ggiraph))
+suppressPackageStartupMessages(library(geojsonio))
+suppressPackageStartupMessages(library(leaflet))
+suppressPackageStartupMessages(library(leaflet.extras))
 
+lsoabounds <- geojson_sf("https://opendata.arcgis.com/datasets/f213065139e3441195803b4155e71e00_0.geojson")
+lsoabounds <- rmapshaper::ms_simplify(lsoabounds, keep = 0.05)
