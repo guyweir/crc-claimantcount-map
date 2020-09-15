@@ -107,27 +107,27 @@ cc$old_rate <- (cc$claimant_count_old/cc$population)*100
 cc$new_rate <- (cc$claimant_count_new/cc$population)*100
 
 
-cc$`Claimant count rate ppt change (July 2017 - July 2020)` <- cc$new_rate - cc$old_rate
+cc$`Claimant count rate ppt change (August 2017 - August 2020)` <- cc$new_rate - cc$old_rate
 
 cc$old_rate <- round(cc$old_rate,1)
 cc$new_rate <- round(cc$new_rate,1)
-cc$`Claimant count rate ppt change (July 2017 - July 2020)` <- round(cc$`Claimant count rate ppt change (July 2017 - July 2020)`,1)
+cc$`Claimant count rate ppt change (August 2017 - August 2020)` <- round(cc$`Claimant count rate ppt change (August 2017 - August 2020)`,1)
 
-cc$"Change decile (1 = low)" <- ntile(cc$`Claimant count rate ppt change (July 2017 - July 2020)`,10)
+cc$"Change decile (1 = low)" <- ntile(cc$`Claimant count rate ppt change (August 2017 - August 2020)`,10)
 cc$"Change decile (1 = low)" <- as.factor(cc$"Change decile (1 = low)")
 
 #make nice names for the columns
 cc <- cc %>% rename("lsoa11cd" = area, 
-                    "Claimant count (July 2017)" = claimant_count_old, 
-                    "Claimant count (July 2020)" = claimant_count_new, 
+                    "Claimant count (August 2017)" = claimant_count_old, 
+                    "Claimant count (August 2020)" = claimant_count_new, 
                     "Population 2018" = population, 
-                    "Claimant count rate % (July 2017)" = old_rate, 
-                    "Claimant count rate % (July 2020)" = new_rate
+                    "Claimant count rate % (August 2017)" = old_rate, 
+                    "Claimant count rate % (August 2020)" = new_rate
 )
 
 #format the data
-cc$`Claimant count (July 2017)` <- format(cc$`Claimant count (July 2017)`, big.mark = ",")
-cc$`Claimant count (July 2020)` <- format(cc$`Claimant count (July 2020)`, big.mark = ",")
+cc$`Claimant count (August 2017)` <- format(cc$`Claimant count (August 2017)`, big.mark = ",")
+cc$`Claimant count (August 2020)` <- format(cc$`Claimant count (August 2020)`, big.mark = ",")
 cc$`Population 2018` <- format(cc$`Population 2018`, big.mark = ",")
 
 
@@ -174,7 +174,7 @@ tbl <- reactable(table2, selection = "multiple",
                  onClick = "select",
                  rowStyle = list(cursor = "pointer"),
                  minRows = 10,filterable = F,searchable = F, wrap = T , defaultPageSize = 15, striped = T, highlight = T,
-                 defaultSorted = list("Claimant count rate ppt change (July 2017 - July 2020)" = "desc"),
+                 defaultSorted = list("Claimant count rate ppt change (August 2017 - August 2020)" = "desc"),
                  columns = list(`Change decile (1 = low)` = colDef(filterable = T),
                                 `Local Authority` = colDef(filterable = T),
                                 `Region/Country` = colDef(filterable = T)),
@@ -233,7 +233,7 @@ EWS.centroids <- bind_rows(dzcentroids, lsoa.centroids)
 EWS.centroids.df <- merge(cc,EWS.centroids, by = "lsoa11cd", all.x = T)
 EWS.centroids.df <- st_as_sf(EWS.centroids.df)
 
-EWS.centroids.df$ccradius <- (EWS.centroids.df$`Claimant count rate ppt change (July 2017 - July 2020)`)* 0.2 + 2
+EWS.centroids.df$ccradius <- (EWS.centroids.df$`Claimant count rate ppt change (August 2017 - August 2020)`)* 0.2 + 2
 EWS.centroids.df$"Change decile (1 = low)" <- as.factor(EWS.centroids.df$"Change decile (1 = low)")
 #EWS.centroids.df <- EWS.centroids.df[c(1:14,16,15)]
 
@@ -241,8 +241,8 @@ factpal <- colorFactor("RdBu",levels = levels(EWS.centroids.df$`Change decile (1
                        ordered = TRUE, reverse = T )
 
 
-labels <- sprintf("<strong>%s</strong><br/>%g ppt claimant count change<sup></sup>",
-                  EWS.centroids.df$`Neighbourhood name`, round(EWS.centroids.df$`Claimant count rate ppt change (July 2017 - July 2020)`,1)) %>% 
+labels <- sprintf("<strong>%s</strong><br/>%g ppt change<sup></sup>",
+                  EWS.centroids.df$`Neighbourhood name`, round(EWS.centroids.df$`Claimant count rate ppt change (August 2017 - August 2020)`,1)) %>% 
   lapply(htmltools::HTML)
 
 
@@ -268,7 +268,7 @@ addLegendCustom <- function(map, colors, labels, sizes, opacity = 0.5, position)
 library(htmltools)
 
 #page element title
-title <- tags$div(HTML("Claimant count percentage point change,<br> July 2017 to July 2020, Great Britain</br>"), 
+title <- tags$div(HTML("Claimant count percentage point change,<br> August 2017 to August 2020, Great Britain</br>"), 
                   style = "font-family: Open Sans;color: #2A2A2A;font-weight: bold; font-size: 22px; text-align: center"
 )
 
@@ -314,7 +314,7 @@ m2
 
 
 combo <- htmltools::tagList(m2, tbl,sources) #I think this makes a combined html object
-browsable(combo)
+#browsable(combo)
 
 ############# Move index.html and lib folder manually into /docs htmltools doesn't support detailed file paths :( )
 htmltools::save_html(combo, "index.html", background = "#FFFCF1") #this saves it as an HTML page in the default folder.
