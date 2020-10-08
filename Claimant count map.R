@@ -152,8 +152,10 @@ cc <- merge(cc, EWScotlook, by.x ="lsoa11cd", by.y = "LSOA11CD" )
 
 
 
-table <- cc %>% select(-lsoa11cd)
-table <- table[,c(9,10,11,1,2,5,6,7,8)]
+table <- cc # %>% select(-lsoa11cd)
+#table <- table[,c(9,10,11,1,2,5,6,7,8)]
+table <- table[,c(1,10,11,12,2,3,6,7,8,9)]
+
 
 #table1 <- table[!is.na(table$`Change decile (1 = low)`),]
 
@@ -268,7 +270,8 @@ EWS.centroids.df <- st_as_sf(EWS.centroids.df)
 EWS.centroids.dfXT <- SharedData$new(EWS.centroids.df) 
 
 #map element
-m2 <- leaflet(EWS.centroids.dfXT, height = "580px", options = list(padding = 100)) %>% setView(-3.5,53.2, 5.5) %>% 
+m2 <- leaflet(EWS.centroids.dfXT, height = "580px", options = leafletOptions(padding = 100,zoomSnap = 0, zoomDelta = 0.3)) %>% 
+                setView(-3.5,55.2, 5.2) %>% 
   setMapWidgetStyle(list(background = "white")) %>% addProviderTiles(providers$CartoDB.Positron, providerTileOptions(opacity = 1) ) %>% 
   
 
