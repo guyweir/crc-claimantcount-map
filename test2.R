@@ -258,7 +258,7 @@ m2 <- leaflet(EWS.centroids.dfXT, height = "580px", options = list(padding = 100
                   sizes = c(1.4,3,5)*2, position = "bottomright", title = "CC change 2019-2020<br> &nbsp" ) %>%
   
   addLegend(pal = factpal, values = EWS.centroids.df$`Change decile (1 = low)`,
-            labels = levels(EWS.centroids.df$`Change decile (1 = low)`), position = "bottomright", title = "CC 2017 deciles <br>(1 = low)") %>%
+            labels = levels(EWS.centroids.df$`Change decile (1 = low)`), position = "topright", title = "CC 2017 deciles <br>(1 = low)") %>%
   
   removeDrawToolbar(clearFeatures = T) %>% 
   addResetMapButton() 
