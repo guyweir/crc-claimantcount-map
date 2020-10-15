@@ -36,14 +36,6 @@ old_raw <- nomis_get_data("NM_162_1",
                           sex = 0,
                           measures = 20100)
 
-old <- old_raw %>% rename(area = "GEOGRAPHY_CODE",
-                          claimant_count_old = "OBS_VALUE")
-
-old <- old %>% select(area,
-                      claimant_count_old)
-
-########################## Import and process new CC ###################################
-
 new_raw <- nomis_get_data("NM_162_1",
                           date = "2020-08",
                           geography = c("TYPE298", "TYPE231"),
@@ -52,18 +44,32 @@ new_raw <- nomis_get_data("NM_162_1",
                           sex = 0,
                           measures = 20100)
 
-new <- new_raw %>% rename(area = "GEOGRAPHY_CODE",
-                          claimant_count_new = "OBS_VALUE")
-
-new <- new %>% select(area,
-                      claimant_count_new)
-
 pop_eng_wales <- nomis_get_data("NM_2010_1",
                                 time =  "latest",
                                 geography = c("TYPE298"),
                                 measures = 20100,
                                 c_age = 203,
                                 gender = 0)
+
+
+
+old <- old_raw %>% rename(area = "GEOGRAPHY_CODE",
+                          claimant_count_old = "OBS_VALUE")
+
+old <- old %>% select(area,
+                      claimant_count_old)
+
+########################## Import and process new CC ###################################
+
+
+
+new <- new_raw %>% rename(area = "GEOGRAPHY_CODE",
+                          claimant_count_new = "OBS_VALUE")
+
+new <- new %>% select(area,
+                      claimant_count_new)
+
+
 
 pop_eng_wales <- pop_eng_wales %>% rename(area = "GEOGRAPHY_CODE",
                                           population = "OBS_VALUE")
@@ -72,15 +78,15 @@ pop_eng_wales <- pop_eng_wales %>% select(area, population)
 
 # ######################### Import and process Scotland populations   #####################
 # 
-# pop_scot <- read_csv("population-estimates-current-geographic-boundaries.csv", skip = 8)
-# pop_scot$lsoa11cd <- str_remove_all(pop_scot$`http://purl.org/linked-data/sdmx/2009/dimension#refArea`,"http://statistics.gov.scot/id/statistical-geography/")
-# pop_scot <- pop_scot[,c(4,2,3)]
-# pop_scot <- rename(pop_scot,"population" = "Count", "area" = "lsoa11cd")
+pop_scot <- read_csv("population-estimates-current-geographic-boundaries.csv", skip = 8)
+pop_scot$lsoa11cd <- str_remove_all(pop_scot$`http://purl.org/linked-data/sdmx/2009/dimension#refArea`,"http://statistics.gov.scot/id/statistical-geography/")
+pop_scot <- pop_scot[,c(4,2,3)]
+pop_scot <- rename(pop_scot,"population" = "Count", "area" = "lsoa11cd")
 
 ############################# Join populations together ######################################
 
-# population <- bind_rows(pop_eng_wales, pop_scot)
-population <- pop_eng_wales
+population <- bind_rows(pop_eng_wales, pop_scot)
+#population <- pop_eng_wales
 
 ######################## Create one dataset ###############################################
 
@@ -119,20 +125,22 @@ cc$`Claimant count (August 2020)` <- format(cc$`Claimant count (August 2020)`, b
 cc$`Population 2018` <- format(cc$`Population 2018`, big.mark = ",")
 
 #lookups
-# scotlook <- read_csv("Datazone2011lookup.csv")
-# scotlook <- scotlook %>% select(DZ2011_Code,DZ2011_Name, LA_Name)
-# scotlook <- scotlook[!duplicated(scotlook),]
-# scotlook <- scotlook %>% rename("LSOA11CD" = DZ2011_Code,"LSOA11NM" = DZ2011_Name,"LAD17NM" = LA_Name )
-# scotlook$RGN11NM <- "Scotland"
+scotlook <- read_csv("Datazone2011lookup.csv")
+scotlook <- scotlook %>% select(DZ2011_Code,DZ2011_Name, LA_Name)
+scotlook <- scotlook[!duplicated(scotlook),]
+scotlook <- scotlook %>% rename("LSOA11CD" = DZ2011_Code,"LSOA11NM" = DZ2011_Name,"LAD17NM" = LA_Name )
+scotlook$RGN11NM <- "Scotland"
 
 EWlook <- read_csv("os lsoa msoa lookup.csv")
 EWScotlook <- EWlook %>% select(LSOA11CD, LSOA11NM,LAD17NM, RGN11NM)
 EWScotlook <- EWScotlook[!duplicated(EWScotlook),]
-# EWScotlook <- bind_rows(EWlook, scotlook)
+#####EWScotlook <- bind_rows(EWlook, scotlook)
 EWScotlook <- rename(EWScotlook,"Local Authority" = LAD17NM, "Region/Country" = RGN11NM, "Neighbourhood name" = LSOA11NM)
 
-cc <- merge(cc, EWScotlook, by.x ="lsoa11cd", by.y = "LSOA11CD" )
+
+cc <- merge(cc, EWScotlook, by.x ="lsoa11cd", by.y = "LSOA11CD", all.x = T )
 cc <- select(cc, -"Reference Area")
+#cc <- cc %>% filter(`Region/Country` != "Scotland")
 
 ###########################################
 ################### TABLE ################
@@ -143,7 +151,7 @@ cc <- select(cc, -"Reference Area")
 table <- cc # %>% select(-lsoa11cd)
 table <- table[,c(1,9,10,11,2,3,5,6,7,8)]
 
-rm(cc,EWScotlook, EWlook, new, old, pop_eng_wales, population)
+rm(cc,EWScotlook, EWlook, new, old, population)
 
 #table2 <- SharedData$new(table)
 
@@ -154,27 +162,27 @@ rm(cc,EWScotlook, EWlook, new, old, pop_eng_wales, population)
 
 library(rgdal)
 library(rgeos)
-suppressPackageStartupMessages(library(sp))
-suppressPackageStartupMessages(library(sf))
-suppressPackageStartupMessages(library(ggplot2))
-suppressPackageStartupMessages(library(ggiraph))
-suppressPackageStartupMessages(library(geojsonio))
-suppressPackageStartupMessages(library(leaflet))
-suppressPackageStartupMessages(library(leaflet.extras))
+library(sp)
+library(sf)
+library(ggplot2)
+library(ggiraph)
+library(geojsonio)
+library(leaflet)
+library(leaflet.extras)
 
 lsoa.centroids <- geojson_sf("https://opendata.arcgis.com/datasets/b7c49538f0464f748dd7137247bbc41c_0.geojson")
 #add in the IZ centroids
-#dzcentroids <- read_sf("http://sedsh127.sedsh.gov.uk/arcgis/rest/services/ScotGov/StatisticalUnits/MapServer/4/query?where=1%3D1&text=&objectIds=&time=&geometry=&geometryType=esriGeometryMultipoint&inSR=&spatialRel=esriSpatialRelWithin&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&returnDistinctValues=false&resultOffset=&resultRecordCount=&f=geojson")
+dzcentroids <- read_sf("http://sedsh127.sedsh.gov.uk/arcgis/rest/services/ScotGov/StatisticalUnits/MapServer/4/query?where=1%3D1&text=&objectIds=&time=&geometry=&geometryType=esriGeometryMultipoint&inSR=&spatialRel=esriSpatialRelWithin&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&returnDistinctValues=false&resultOffset=&resultRecordCount=&f=geojson")
 
 
-# dzcentroids <- dzcentroids %>% rename(objectid = OBJECTID, lsoa11cd = DataZone, lsoa11nm = Name)
-# dzcentroids <- dzcentroids[,c(1,2,3,9)]
+ dzcentroids <- dzcentroids %>% rename(objectid = OBJECTID, lsoa11cd = DataZone, lsoa11nm = Name)
+ dzcentroids <- dzcentroids[,c(1,2,3,9)]
 #dzcentroids <- as(dzcentroids, "Spatial")
 
 #EWS.centroids <- raster::union(lsoa.centroids, dzcentroids)
 
-#EWS.centroids <- rbind(dzcentroids, lsoa.centroids)
-EWS.centroids <- lsoa.centroids
+EWS.centroids <- rbind(dzcentroids, lsoa.centroids)
+#EWS.centroids <- lsoa.centroids
 rm(lsoa.centroids)
 #merge in the cc data
 #EWS.centroids <- st_as_sf(lsoa.centroids)
@@ -184,7 +192,7 @@ EWS.centroids.df <- EWS.centroids.df[,c(colnames(table),"geometry")]
 
 EWS.centroids.df$ccradius <- (EWS.centroids.df$`Claimant count rate ppt change (August 2019 - August 2020)`)* 0.2 + 2
 EWS.centroids.df$"Change decile (1 = low)" <- as.factor(EWS.centroids.df$"Change decile (1 = low)")
-EWS.centroids.df <- EWS.centroids.df[,c(1:10,12,13, 11)] #stick geometry on the end of the file
+EWS.centroids.df <- EWS.centroids.df[,c(1:10,12, 11)] #stick geometry on the end of the file
 #EWS.centroids.df <- EWS.centroids.df[c(1:14,16,15)]
 
 factpal <- colorFactor("RdBu",levels = levels(EWS.centroids.df$`Change decile (1 = low)`[!is.na(EWS.centroids.df$`Change decile (1 = low)`)]), 
@@ -229,12 +237,12 @@ sources <- tags$div(HTML("Claimant Count, ONS<br> Analysis: WPI Economics on beh
 
 #remove NA
 #EWS.centroids.df <- EWS.centroids.df[!is.na(EWS.centroids.df$`Change decile (1 = low)`),]
-#EWS.centroids.df <- st_as_sf(EWS.centroids.df)
-#EWS.centroids.df <- as_Spatial(EWS.centroids.df)
+EWS.centroids.df <- st_as_sf(EWS.centroids.df)
+###EWS.centroids.df <- as_Spatial(EWS.centroids.df)
 
 #reorder to match table
 
-EWS.centroids.dfXT <- SharedData$new(EWS.centroids.df)
+EWS.centroids.dfXT <- SharedData$new(EWS.centroids.df, group = "gw", key = ~lsoa11cd)
 
 #map element
 #map element
@@ -267,7 +275,7 @@ m2
 
 
 sd <- EWS.centroids.df %>% as.data.frame() %>% select(-geometry, -ccradius) 
-sd_df <- SharedData$new(sd)
+sd_df <- SharedData$new(sd, group = "gw", key = ~lsoa11cd)
 
 
 ##########the reactable table
@@ -299,4 +307,5 @@ tbl <- reactable(sd_df, selection = "multiple",
 tbl
 
 combo <- htmltools::tagList(m2, tbl,sources) #I think this makes a combined html object
-browsable(combo)
+
+htmltools::save_html(combo, "index.html") #this saves it as an HTML page in the default folder.
